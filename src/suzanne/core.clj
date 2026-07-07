@@ -54,10 +54,15 @@
   libpython-clj's own probing loads the wrong name on macOS, so we hand it
   the exact path."
   [python-exe]
-  (let [code (str "import sysconfig, os, sys;"
-                  "ext = '.dylib' if sys.platform == 'darwin' else '.so';"
-                  "print(os.path.join(sysconfig.get_config_var('LIBDIR'),"
-                  "'libpython' + sysconfig.get_python_version() + ext))")
+  (let [code (str "import sysconfig, os, sys\n"
+                  "if sys.platform == 'darwin':\n"
+                  "    name = 'libpython' + sysconfig.get_python_version() + '.dylib'\n"
+                  "else:\n"
+                  "    # Linux: the unversioned .so only exists with -dev packages;\n"
+                  "    # INSTSONAME is the real runtime name (e.g. libpython3.11.so.1.0)\n"
+                  "    name = (sysconfig.get_config_var('INSTSONAME')\n"
+                  "            or 'libpython' + sysconfig.get_python_version() + '.so')\n"
+                  "print(os.path.join(sysconfig.get_config_var('LIBDIR'), name))")
         {:keys [out exit err]} (sh python-exe "-c" code)]
     (when-not (zero? exit)
       (throw (ex-info "Could not locate libpython shared library"
