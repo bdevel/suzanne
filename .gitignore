@@ -1,0 +1,9 @@
+/bpy-venv/
+/.cpcache/
+/target/
+/classes/
+.nrepl-port
+.prepl-port
+hs_err_pid*.log
+preview.stl
+*.blend1

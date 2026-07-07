@@ -1,0 +1,8 @@
+{:paths ["src" "resources"]
+ :deps  {org.clojure/clojure      {:mvn/version "1.11.1"}
+         clj-python/libpython-clj {:mvn/version "2.026"}
+         ;; libpython-clj's bundled JNA crashes on recent macOS; 5.17+ is fine
+         net.java.dev.jna/jna     {:mvn/version "5.17.0"}}
+
+ :aliases
+ {:smoke {:main-opts ["-i" "scripts/smoke.clj"]}}}
