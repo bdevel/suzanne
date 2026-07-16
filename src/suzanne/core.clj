@@ -217,12 +217,18 @@
     (py/py.. bm (free))))
 
 (defn mesh-object!
-  "Create a scene object named name from {:verts [[x y z] ...] :faces [[i ...] ...]}."
+  "Create a scene object named name from {:verts [[x y z] ...] :faces [[i ...] ...]}.
+
+  The verts and faces are bulk-copied into native Python lists before
+  from_pydata sees them. Handing it the Clojure vectors directly works too,
+  but then Python iterates them element by element across the JVM bridge
+  (hundreds of thousands of crossings for a few thousand vertices), which
+  made this call ~16x slower and dominated mesh-heavy pipelines."
   [name {:keys [verts faces]} & {:keys [weld]}]
   (let [b    (bpy)
         mesh (py/py.. b -data -meshes (new name))
         obj  (py/py.. b -data -objects (new name mesh))]
-    (py/py.. mesh (from_pydata verts [] faces))
+    (py/py.. mesh (from_pydata (py/->python verts) [] (py/->python faces)))
     (py/py.. mesh (validate))
     (py/py.. mesh (update))
     (py/py.. b -context -scene -collection -objects (link obj))
